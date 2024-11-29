@@ -140,6 +140,8 @@ const App = () => {
   // Add a test message when the component mounts
   useEffect(() => {
     createMessage("info", "Welcome to the application!");
+    fetchUsers();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
