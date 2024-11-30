@@ -19,7 +19,6 @@ const validationSchema = z.object({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-// @ts-ignore
 type FormValues = z.infer<typeof validationSchema>;
 
 interface LoginFormProps {
