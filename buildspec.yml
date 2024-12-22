@@ -4,7 +4,7 @@ env:
   variables:
     AWS_REGION: "us-west-1"
     VITE_API_SERVICE_URL: "http://localhost:5004"
-    REACT_APP_API_SERVICE_URL: "http://flask-react-al-1101987435.us-west-1.elb.amazonaws.com"
+    REACT_APP_API_SERVICE_URL: "http://flask-react-alb-889924522.us-west-1.elb.amazonaws.com"
 phases:
   pre_build:
     commands:
