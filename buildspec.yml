@@ -1,3 +1,5 @@
+version: 0.2
+
 env:
   variables:
     AWS_REGION: "us-west-1"
@@ -12,14 +14,15 @@ phases:
           | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       # new
       - |
-        if [ "$CODEBUILD_WEBHOOK_TRIGGER" = "branch/master" ] && [ "$CODEBUILD_WEBHOOK_HEAD_REF" = "refs/heads/master" ]; then
-          echo "On master branch - setting tag to prod"
-          DOCKER_TAG="prod"
+        if expr "$CODEBUILD_WEBHOOK_TRIGGER" == "branch/master" >/dev/null  && expr "$CODEBUILD_WEBHOOK_HEAD_REF" == "refs/heads/master" >/dev/null; then
+          DOCKER_TAG=prod
         else
-          echo "On feature/dev branch - setting tag to commit hash"
-          DOCKER_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+          DOCKER_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
         fi
-      - echo "Docker tag = $DOCKER_TAG"
+      # new
+      - echo "Docker tag:" $DOCKER_TAG
+      - echo "Current branch trigger: $CODEBUILD_WEBHOOK_TRIGGER"
+      - echo "Current HEAD ref: $CODEBUILD_WEBHOOK_HEAD_REF"
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG || true  # updated
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder || true  # updated
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG || true  # updated
@@ -60,12 +63,10 @@ phases:
           ./services/client
   post_build:
     commands:
-    - echo "Current branch trigger: $CODEBUILD_WEBHOOK_TRIGGER"
-    - echo "Current HEAD ref: $CODEBUILD_WEBHOOK_HEAD_REF"
     - echo "Using docker tag: $DOCKER_TAG"
-    - echo "pushing prod images to ecr..."
-    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG
+    - echo pushing prod images to ecr...
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG  # updated
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder
-    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG  # updated
     - chmod +x ./deploy.sh
     - bash deploy.sh
