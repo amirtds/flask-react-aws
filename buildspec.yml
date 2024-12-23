@@ -11,14 +11,14 @@ phases:
       - echo logging in to ecr...
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - |
-        if expr "$CODEBUILD_WEBHOOK_TRIGGER" == "branch/master" >/dev/null  && expr "$CODEBUILD_WEBHOOK_HEAD_REF" == "refs/heads/master" >/dev/null; then
+        if expr "$CODEBUILD_WEBHOOK_TRIGGER" == "branch/master" >/dev/null && expr "$CODEBUILD_WEBHOOK_HEAD_REF" == "refs/heads/master" >/dev/null; then
           DOCKER_TAG=prod
         else
           DOCKER_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
         fi
-      - echo "Docker tag:" $DOCKER_TAG
-      - echo "Current branch trigger: $CODEBUILD_WEBHOOK_TRIGGER"
-      - echo "Current HEAD ref: $CODEBUILD_WEBHOOK_HEAD_REF"
+      - echo "Docker tag $DOCKER_TAG"
+      - echo "Current branch trigger $CODEBUILD_WEBHOOK_TRIGGER"
+      - echo "Current HEAD ref $CODEBUILD_WEBHOOK_HEAD_REF"
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG || true
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder || true
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG || true
@@ -39,7 +39,7 @@ phases:
       - docker build --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG -f services/client/Dockerfile.prod -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG ./services/client
   post_build:
     commands:
-      - echo "Using docker tag: $DOCKER_TAG"
+      - echo "Using docker tag $DOCKER_TAG"
       - echo pushing prod images to ecr...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder
